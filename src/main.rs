@@ -1,8 +1,13 @@
-fn main() {
-    println!("Hello, rust!!");
-}
+// rcli csv -i input.csv -o output.json --header --d ','
 
-#[test]
-fn add_two() {
-    assert_eq!(1 + 1, 2);
+use anyhow::Result;
+use clap::Parser;
+use rcli::{Opts, SubCommand, process_csv};
+
+fn main() -> Result<()> {
+    let opts = Opts::parse();
+    match opts.cmd {
+        SubCommand::Csv(opt) => process_csv(opt.input, opt.output)?,
+    }
+    Ok(())
 }
