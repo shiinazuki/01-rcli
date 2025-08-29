@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, str::FromStr};
 
 use clap::Parser;
 
@@ -20,14 +20,53 @@ pub struct CsvOpt {
     #[arg(short, long, value_parser = verify_input_file)]
     pub input: PathBuf,
 
-    #[arg(short, long, default_value = "output.json", value_parser = verify_output_file)]
-    pub output: PathBuf,
+    #[arg(short, long,  value_parser = verify_output_file)]
+    pub output: Option<PathBuf>,
+
+    #[arg(long, default_value = "json", value_parser = parse_format)]
+    pub format: OutputFormat,
 
     #[arg(short, long, default_value_t = ',')]
     pub deliment: char,
 
     #[arg(long, default_value_t = true)]
     pub header: bool,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum OutputFormat {
+    Json,
+    Yaml,
+}
+
+impl From<OutputFormat> for &'static str {
+    fn from(value: OutputFormat) -> Self {
+        match value {
+            OutputFormat::Json => "json",
+            OutputFormat::Yaml => "yaml",
+        }
+    }
+}
+
+impl FromStr for OutputFormat {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "json" => Ok(OutputFormat::Json),
+            "yaml" => Ok(OutputFormat::Yaml),
+            _ => Err(anyhow::anyhow!("Invalid format")),
+        }
+    }
+}
+
+impl std::fmt::Display for OutputFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", Into::<&str>::into(*self))
+    }
+}
+
+fn parse_format(format: &str) -> Result<OutputFormat, anyhow::Error> {
+    format.parse()
 }
 
 fn verify_input_file(filename: &str) -> Result<PathBuf, String> {
