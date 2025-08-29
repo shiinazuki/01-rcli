@@ -13,6 +13,9 @@ pub struct Opts {
 pub enum SubCommand {
     #[command(name = "csv", about = "Show CSV or convert csv to other format")]
     Csv(CsvOpt),
+
+    #[command(name = "genpass", about = "Generate a random password")]
+    GenPass(GenPassOpt),
 }
 
 #[derive(Debug, Parser)]
@@ -31,6 +34,24 @@ pub struct CsvOpt {
 
     #[arg(long, default_value_t = true)]
     pub header: bool,
+}
+
+#[derive(Debug, Parser)]
+pub struct GenPassOpt {
+    #[arg(short, long, default_value_t = 16)]
+    pub length: u8,
+
+    #[arg(long)]
+    pub no_uppercase: bool,
+
+    #[arg(long)]
+    pub no_lowercase: bool,
+
+    #[arg(long)]
+    pub no_number: bool,
+
+    #[arg(long)]
+    pub no_symbol: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
