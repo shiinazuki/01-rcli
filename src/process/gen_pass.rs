@@ -35,7 +35,7 @@ pub fn process_genpass(
         password.push(*SYMBOL.choose(&mut rng).expect("SYMBOL won't be empty"));
     }
 
-    if password.is_empty() {
+    if chars.is_empty() {
         return Err(anyhow::anyhow!(
             "Password must contain at lease one character"
         ));
