@@ -4,7 +4,7 @@ use anyhow::Result;
 use csv::Reader;
 use serde::{Deserialize, Serialize};
 
-use crate::opts::OutputFormat;
+use crate::cli::OutputFormat;
 
 #[allow(unused)]
 #[derive(Debug, Serialize, Deserialize)]

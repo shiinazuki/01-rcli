@@ -1,12 +1,5 @@
-mod opts;
+mod cli;
 mod process;
 
-pub use opts::{Opts, SubCommand};
-pub use process::{process_csv, process_genpass};
-
-mod test {
-    #[test]
-    fn add_two() {
-        assert_eq!(1 + 1, 2);
-    }
-}
+pub use cli::{Base64Format, Base64SubCommand, InputReader, Opts, SubCommand};
+pub use process::{process_csv, process_decode, process_encode, process_genpass};

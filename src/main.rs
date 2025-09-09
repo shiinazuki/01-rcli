@@ -4,7 +4,10 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use clap::Parser;
-use rcli::{Opts, SubCommand, process_csv, process_genpass};
+use rcli::{
+    Base64SubCommand, Opts, SubCommand, process_csv, process_decode, process_encode,
+    process_genpass,
+};
 
 fn main() -> Result<()> {
     let opts = Opts::parse();
@@ -27,6 +30,15 @@ fn main() -> Result<()> {
                 opt.no_symbol,
             )?;
         }
+
+        SubCommand::Base64(subcmd) => match subcmd {
+            Base64SubCommand::Encode(opt) => {
+                process_encode(opt.input, opt.format)?;
+            }
+            Base64SubCommand::Decode(opt) => {
+                process_decode(opt.input, opt.format)?;
+            }
+        },
     }
     Ok(())
 }

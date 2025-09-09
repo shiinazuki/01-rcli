@@ -2,21 +2,7 @@ use std::{path::PathBuf, str::FromStr};
 
 use clap::Parser;
 
-#[derive(Debug, Parser)]
-#[command(name = "rcli", version, author, about, long_about = None)]
-pub struct Opts {
-    #[command(subcommand)]
-    pub cmd: SubCommand,
-}
-
-#[derive(Debug, Parser)]
-pub enum SubCommand {
-    #[command(name = "csv", about = "Show CSV or convert csv to other format")]
-    Csv(CsvOpt),
-
-    #[command(name = "genpass", about = "Generate a random password")]
-    GenPass(GenPassOpt),
-}
+use crate::cli::verify_input_file;
 
 #[derive(Debug, Parser)]
 pub struct CsvOpt {
@@ -34,24 +20,6 @@ pub struct CsvOpt {
 
     #[arg(long, default_value_t = true)]
     pub header: bool,
-}
-
-#[derive(Debug, Parser)]
-pub struct GenPassOpt {
-    #[arg(short, long, default_value_t = 16)]
-    pub length: u8,
-
-    #[arg(long)]
-    pub no_uppercase: bool,
-
-    #[arg(long)]
-    pub no_lowercase: bool,
-
-    #[arg(long)]
-    pub no_number: bool,
-
-    #[arg(long)]
-    pub no_symbol: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -88,17 +56,6 @@ impl std::fmt::Display for OutputFormat {
 
 fn parse_format(format: &str) -> Result<OutputFormat, anyhow::Error> {
     format.parse()
-}
-
-fn verify_input_file(filename: &str) -> Result<PathBuf, String> {
-    let path = PathBuf::from(filename);
-    if !path.exists() {
-        return Err(format!("file is not exists: {}", filename));
-    }
-    if !path.is_file() {
-        return Err(format!("path is not a file: {}", filename));
-    }
-    Ok(path)
 }
 
 fn verify_output_file(filename: &str) -> Result<PathBuf, String> {
