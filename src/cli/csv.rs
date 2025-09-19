@@ -2,11 +2,11 @@ use std::{path::PathBuf, str::FromStr};
 
 use clap::Parser;
 
-use crate::cli::verify_input_file;
+use crate::cli::verify_file;
 
 #[derive(Debug, Parser)]
 pub struct CsvOpt {
-    #[arg(short, long, value_parser = verify_input_file)]
+    #[arg(short, long, value_parser = verify_file)]
     pub input: PathBuf,
 
     #[arg(short, long,  value_parser = verify_output_file)]

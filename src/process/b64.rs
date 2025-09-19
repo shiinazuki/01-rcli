@@ -8,7 +8,7 @@ use base64::{
 
 use crate::{Base64Format, InputReader};
 
-pub fn process_encode(input: PathBuf, format: Base64Format) -> Result<()> {
+pub fn process_encode(input: PathBuf, format: Base64Format) -> Result<String> {
     let mut reader = InputReader::from_path(input)?;
 
     let mut buf = Vec::new();
@@ -21,11 +21,10 @@ pub fn process_encode(input: PathBuf, format: Base64Format) -> Result<()> {
 
     let encoded = engine.encode(&buf);
 
-    println!("{}", encoded);
-    Ok(())
+    Ok(encoded)
 }
 
-pub fn process_decode(input: PathBuf, format: Base64Format) -> Result<()> {
+pub fn process_decode(input: PathBuf, format: Base64Format) -> Result<Vec<u8>> {
     let mut reader = InputReader::from_path(input)?;
     let mut buf = String::new();
     reader.read_to_string(&mut buf)?;
@@ -36,9 +35,7 @@ pub fn process_decode(input: PathBuf, format: Base64Format) -> Result<()> {
     };
 
     let decoded = engine.decode(buf.trim())?;
-    let decoded = String::from_utf8(decoded)?;
-    println!("{}", decoded);
-    Ok(())
+    Ok(decoded)
 }
 
 #[cfg(test)]

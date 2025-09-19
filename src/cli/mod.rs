@@ -1,12 +1,14 @@
 mod base64;
 mod csv;
 mod genpass;
+mod text;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub use self::{
-    base64::{Base64Format, Base64SubCommand, InputReader},
+    base64::{Base64Format, Base64SubCommand},
     csv::OutputFormat,
+    text::{TextSignFormat, TextSubCommand},
 };
 
 use self::{csv::CsvOpt, genpass::GenPassOpt};
@@ -30,20 +32,28 @@ pub enum SubCommand {
 
     #[command(subcommand)]
     Base64(Base64SubCommand),
+
+    #[command(subcommand)]
+    Text(TextSubCommand),
 }
 
-fn verify_input_file(filename: &str) -> Result<PathBuf, String> {
-    if filename == "-" {
-        return Ok(PathBuf::from("-"));
+fn verify_file(filename: &str) -> Result<PathBuf, &'static str> {
+    // if input is "-" or file exists
+    if filename == "-" || Path::new(filename).exists() {
+        Ok(filename.into())
+    } else {
+        Err("File does not exist")
     }
-    let path = PathBuf::from(filename);
-    if !path.exists() {
-        return Err(format!("file is not exists: {}", filename));
+}
+
+fn verify_path(path: &str) -> Result<PathBuf, &'static str> {
+    // if input is "-" or file exists
+    let p = Path::new(path);
+    if p.exists() && p.is_dir() {
+        Ok(path.into())
+    } else {
+        Err("Path does not exist or is not a directory")
     }
-    if !path.is_file() {
-        return Err(format!("path is not a file: {}", filename));
-    }
-    Ok(path)
 }
 
 #[cfg(test)]
@@ -52,14 +62,9 @@ mod tests {
 
     #[test]
     fn test_verify_input_file() {
-        assert_eq!(verify_input_file("-"), Ok(PathBuf::from("-")));
-        assert_eq!(
-            verify_input_file("Cargo.toml"),
-            Ok(PathBuf::from("Cargo.toml"))
-        );
-        assert_eq!(
-            verify_input_file("not_exist"),
-            Err("file is not exists: not_exist".to_string())
-        );
+        assert_eq!(verify_file("-"), Ok("-".into()));
+        assert_eq!(verify_file("*"), Err("File does not exist"));
+        assert_eq!(verify_file("Cargo.toml"), Ok("Cargo.toml".into()));
+        assert_eq!(verify_file("not-exist"), Err("File does not exist"));
     }
 }
