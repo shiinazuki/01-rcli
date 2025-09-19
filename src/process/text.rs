@@ -306,7 +306,10 @@ mod tests {
 
     #[test]
     fn test_blake3_sign_verify() -> Result<()> {
-        let blake3 = Blake3::load(PathBuf::from("fixtures/blake3.txt"))?;
+        let key = process_genpass(32, false, false, false, false)?;
+        let key = key.as_bytes().to_vec();
+        let blake3 = Blake3::try_new(&key)?;
+        // let blake3 = Blake3::load(PathBuf::from("fixtures/blake3.txt"))?;
 
         let data = b"hello world";
         let sig = blake3.sign(&mut &data[..]).unwrap();
@@ -317,8 +320,16 @@ mod tests {
 
     #[test]
     fn test_ed25519_sign_verify() -> Result<()> {
-        let sk = Ed25519Signer::load(PathBuf::from("fixtures/ed25519.sk"))?;
-        let pk = Ed25519Verifier::load(PathBuf::from("fixtures/ed25519.pk"))?;
+        let mut rng = rng();
+        let sk = SigningKey::generate(&mut rng);
+        let pk = sk.verifying_key().to_bytes().to_vec();
+        let sk = sk.to_bytes().to_vec();
+
+        let sk = Ed25519Signer::try_new(&sk)?;
+        let pk = Ed25519Verifier::try_new(&pk)?;
+
+        // let sk = Ed25519Signer::load(PathBuf::from("fixtures/ed25519.sk"))?;
+        // let pk = Ed25519Verifier::load(PathBuf::from("fixtures/ed25519.pk"))?;
 
         let data = b"hello world";
         let sig = sk.sign(&mut &data[..]).unwrap();
