@@ -40,9 +40,10 @@ mod utils;
 use anyhow::Result;
 pub use cli::{Base64Format, Opts, OutputFormat, TextKeyFormat, TextSignFormat};
 pub use process::{
-    process_csv, process_decode, process_encode, process_genpass, process_http_index,
-    process_http_serve, process_text_decrypt, process_text_encrypt, process_text_generate,
-    process_text_sign, process_text_verify,
+    Claims, process_csv, process_decode, process_encode, process_genpass, process_http_index,
+    process_http_serve, process_jwt_pubkey, process_jwt_sign, process_jwt_verify,
+    process_text_decrypt, process_text_encrypt, process_text_generate, process_text_sign,
+    process_text_verify,
 };
 pub use utils::{InputReader, get_reader, write_secret};
 

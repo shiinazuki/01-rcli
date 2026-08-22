@@ -44,3 +44,9 @@ profile.json
 *.swp
 *~
 *.log
+
+# 测试密钥，别进版本库
+/fixtures/*.sk
+/fixtures/*.pk
+/fixtures/blake3.txt
+/fixtures/chacha.txt

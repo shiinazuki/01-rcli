@@ -118,6 +118,7 @@ exclude = [
 #
 # 版本继承自上面的 [workspace.dependencies]，这里只声明「本 crate 要用」
 
+jsonwebtoken = { version = "11.0.0", default-features = false }
 anyhow = "1.0.104"
 axum = { version = "0.8.9", features = ["http2", "query", "tracing"] }
 base64 = "0.23.1"
@@ -125,7 +126,8 @@ blake3 = "1.8.6"
 chacha20poly1305 = "0.11.0"
 clap = { version = "4.6.6", features = ["derive"] }
 csv = "1.4.0"
-ed25519-dalek = { version = "3.0.0", features = ["rand_core"] }
+ed25519-dalek = { version = "3.0.0", features = ["rand_core", "pem"] }
+humantime = "2.4.0"
 rand = "0.10.2"
 serde = { version = "1.0.229", features = ["derive"] }
 serde-saphyr = "1.1.0"
@@ -172,6 +174,7 @@ zxcvbn = "3.1.1"
 # ---------------------------------------------------------------------------
 assert_cmd = "2"
 predicates = "3"
+tempfile = "3"
 
 # 依赖用 O2 编译、自身代码保持 O0：调试体验不变，但依赖里的热点代码（解析、
 # 加解密、序列化等）在 debug 运行时快一个数量级。代价是首次编译稍慢。

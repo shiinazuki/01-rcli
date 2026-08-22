@@ -2,6 +2,7 @@ mod base64;
 mod csv;
 mod genpass;
 mod http;
+mod jwt;
 mod text;
 
 use std::path::{Path, PathBuf};
@@ -14,7 +15,9 @@ pub use self::{
     csv::OutputFormat,
     text::{TextKeyFormat, TextSignFormat},
 };
-pub(crate) use self::{base64::Base64SubCommand, http::HttpSubCommand, text::TextSubCommand};
+pub(crate) use self::{
+    base64::Base64SubCommand, http::HttpSubCommand, jwt::JwtSubCommand, text::TextSubCommand,
+};
 use crate::cli::{csv::CsvOpts, genpass::GenPassOpts};
 
 #[derive(Debug, Parser)]
@@ -40,6 +43,9 @@ pub(crate) enum SubCommand {
 
     #[command(subcommand)]
     Http(HttpSubCommand),
+
+    #[command(subcommand)]
+    Jwt(JwtSubCommand),
 }
 
 impl_cmd_executor!(SubCommand {
@@ -47,7 +53,8 @@ impl_cmd_executor!(SubCommand {
     GenPass,
     Base64,
     Text,
-    Http
+    Http,
+    Jwt,
 });
 
 // 已使用宏优化
