@@ -1,4 +1,7 @@
 use clap::{Args, value_parser};
+use zxcvbn::zxcvbn;
+
+use crate::{CmdExecutor, process_genpass};
 
 #[expect(
     clippy::struct_excessive_bools,
@@ -20,4 +23,21 @@ pub(crate) struct GenPassOpts {
 
     #[arg(long, default_value_t = false)]
     pub no_symbol: bool,
+}
+
+#[expect(clippy::unused_async_trait_impl)]
+impl CmdExecutor for GenPassOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let password = process_genpass(
+            self.length,
+            self.no_uppercase,
+            self.no_lowercase,
+            self.no_number,
+            self.no_symbol,
+        )?;
+        println!("{password}");
+        let result = zxcvbn(&password, &[]);
+        eprintln!("Password strength: {}", result.score());
+        Ok(())
+    }
 }

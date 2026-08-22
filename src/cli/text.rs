@@ -1,8 +1,14 @@
 use std::path::PathBuf;
 
 use clap::{Args, Subcommand, ValueEnum};
+use tokio::fs;
 
-use crate::cli::{verify_file, verify_path};
+use crate::{
+    CmdExecutor,
+    cli::{verify_file, verify_path},
+    process_text_decrypt, process_text_encrypt, process_text_generate, process_text_sign,
+    process_text_verify, write_secret,
+};
 
 #[derive(Debug, Subcommand)]
 pub(crate) enum TextSubCommand {
@@ -21,6 +27,14 @@ pub(crate) enum TextSubCommand {
     #[command(name = "decrypt", about = "Decrypt a text")]
     Decrypt(TextDecryptOpts),
 }
+
+impl_cmd_executor!(TextSubCommand {
+    Sign,
+    Verify,
+    Generate,
+    Encrypt,
+    Decrypt
+});
 
 #[derive(Debug, Args)]
 pub(crate) struct TextEncryptOpts {
@@ -115,3 +129,71 @@ pub enum TextKeyFormat {
 //         }
 //     }
 // }
+
+// 已使用宏优化
+// impl CmdExecutor for TextSubCommand {
+//     async fn execute(self) -> anyhow::Result<()> {
+//         match self {
+//             TextSubCommand::Sign(opts) => opts.execute().await?,
+//             TextSubCommand::Verify(opts) => opts.execute().await?,
+//             TextSubCommand::Generate(opts) => opts.execute().await?,
+//             TextSubCommand::Encrypt(opts) => opts.execute().await?,
+//             TextSubCommand::Decrypt(opts) => opts.execute().await?,
+//         }
+//         Ok(())
+//     }
+// }
+
+impl CmdExecutor for TextSignOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let signed = process_text_sign(&self.input, &self.key, self.format).await?;
+        println!("{signed}");
+        Ok(())
+    }
+}
+
+impl CmdExecutor for TextVerifyOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let verified = process_text_verify(&self.input, &self.key, self.format, &self.sig).await?;
+        println!("{verified}");
+        if !verified {
+            std::process::exit(1);
+        }
+        Ok(())
+    }
+}
+
+impl CmdExecutor for TextKeyGenerateOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let key = process_text_generate(self.format)?;
+        match self.format {
+            TextKeyFormat::Blake3 => {
+                write_secret(self.output.join("blake3.txt"), &key[0]).await?;
+            }
+            TextKeyFormat::Ed25519 => {
+                write_secret(self.output.join("ed25519.sk"), &key[0]).await?;
+                fs::write(self.output.join("ed25519.pk"), &key[1]).await?;
+            }
+            TextKeyFormat::Chacha20 => {
+                write_secret(self.output.join("chacha.txt"), &key[0]).await?;
+            }
+        }
+        Ok(())
+    }
+}
+
+impl CmdExecutor for TextEncryptOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let encrypt = process_text_encrypt(&self.input, &self.key).await?;
+        println!("{encrypt}");
+        Ok(())
+    }
+}
+
+impl CmdExecutor for TextDecryptOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let decrypt = process_text_decrypt(&self.input, &self.key).await?;
+        println!("{decrypt}");
+        Ok(())
+    }
+}

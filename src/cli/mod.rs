@@ -42,6 +42,28 @@ pub(crate) enum SubCommand {
     Http(HttpSubCommand),
 }
 
+impl_cmd_executor!(SubCommand {
+    Csv,
+    GenPass,
+    Base64,
+    Text,
+    Http
+});
+
+// 已使用宏优化
+// impl CmdExecutor for SubCommand {
+//     async fn execute(self) -> Result<()> {
+//         match self {
+//             SubCommand::Csv(opts) => opts.execute().await?,
+//             SubCommand::GenPass(opts) => opts.execute().await?,
+//             SubCommand::Base64(subcmd) => subcmd.execute().await?,
+//             SubCommand::Text(subcmd) => subcmd.execute().await?,
+//             SubCommand::Http(subcmd) => subcmd.execute().await?,
+//         }
+//         Ok(())
+//     }
+// }
+
 fn verify_file(filename: &str) -> Result<String, &'static str> {
     if filename == "-" || Path::new(filename).exists() {
         Ok(filename.into())

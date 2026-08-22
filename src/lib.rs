@@ -31,115 +31,25 @@
 //! # }
 //! ```
 
+#[macro_use]
+mod macros;
 mod cli;
 mod process;
 mod utils;
 
 use anyhow::Result;
 pub use cli::{Base64Format, Opts, OutputFormat, TextKeyFormat, TextSignFormat};
-use cli::{Base64SubCommand, HttpSubCommand, SubCommand, TextSubCommand};
 pub use process::{
     process_csv, process_decode, process_encode, process_genpass, process_http_index,
     process_http_serve, process_text_decrypt, process_text_encrypt, process_text_generate,
     process_text_sign, process_text_verify,
 };
-use tokio::fs;
 pub use utils::{InputReader, get_reader, write_secret};
-use zxcvbn::zxcvbn;
+
+pub(crate) trait CmdExecutor {
+    async fn execute(self) -> Result<()>;
+}
 
 pub async fn parse_cmd(opts: Opts) -> Result<()> {
-    match opts.cmd {
-        SubCommand::Csv(opts) => {
-            let output = if let Some(output) = &opts.output {
-                output.clone()
-            } else {
-                format!("output.{}", opts.format)
-            };
-            process_csv(
-                &opts.input,
-                output,
-                opts.format,
-                opts.delimiter,
-                !opts.no_header,
-            )
-            .await?;
-        }
-        SubCommand::GenPass(opts) => {
-            let password = process_genpass(
-                opts.length,
-                opts.no_uppercase,
-                opts.no_lowercase,
-                opts.no_number,
-                opts.no_symbol,
-            )?;
-            println!("{password}");
-            let result = zxcvbn(&password, &[]);
-            eprintln!("Password strength: {}", result.score());
-        }
-        SubCommand::Base64(subcmd) => match subcmd {
-            Base64SubCommand::Encode(opts) => {
-                let encoded = process_encode(&opts.input, opts.format).await?;
-                println!("{encoded}");
-            }
-
-            Base64SubCommand::Decode(opts) => {
-                let decoded = process_decode(&opts.input, opts.format).await?;
-                let decoded = String::from_utf8(decoded)?;
-                println!("{decoded}");
-            }
-        },
-
-        SubCommand::Text(subcmd) => match subcmd {
-            TextSubCommand::Sign(opts) => {
-                let signed = process_text_sign(&opts.input, &opts.key, opts.format).await?;
-                println!("{signed}");
-            }
-
-            TextSubCommand::Verify(opts) => {
-                let verified =
-                    process_text_verify(&opts.input, &opts.key, opts.format, &opts.sig).await?;
-                println!("{verified}");
-                if !verified {
-                    std::process::exit(1);
-                }
-            }
-
-            TextSubCommand::Generate(opts) => {
-                let key = process_text_generate(opts.format)?;
-                match opts.format {
-                    TextKeyFormat::Blake3 => {
-                        write_secret(opts.output.join("blake3.txt"), &key[0]).await?;
-                    }
-                    TextKeyFormat::Ed25519 => {
-                        write_secret(opts.output.join("ed25519.sk"), &key[0]).await?;
-                        fs::write(opts.output.join("ed25519.pk"), &key[1]).await?;
-                    }
-                    TextKeyFormat::Chacha20 => {
-                        write_secret(opts.output.join("chacha.txt"), &key[0]).await?;
-                    }
-                }
-            }
-
-            TextSubCommand::Encrypt(opts) => {
-                let encrypt = process_text_encrypt(&opts.input, &opts.key).await?;
-                println!("{encrypt}");
-            }
-            TextSubCommand::Decrypt(opts) => {
-                let decrypt = process_text_decrypt(&opts.input, &opts.key).await?;
-                println!("{decrypt}");
-            }
-        },
-
-        SubCommand::Http(subcmd) => match subcmd {
-            HttpSubCommand::Serve(opts) => {
-                process_http_serve(opts.dir, opts.port).await?;
-            }
-
-            HttpSubCommand::Index(opts) => {
-                let n = process_http_index(opts.dir, opts.force).await?;
-                println!("Generated {n} index.html file(s)");
-            }
-        },
-    }
-    Ok(())
+    opts.cmd.execute().await
 }

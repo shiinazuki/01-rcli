@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use clap::Args;
 
-use crate::cli::verify_file;
+use crate::{CmdExecutor, cli::verify_file, process_csv};
 
 #[derive(Debug, Args)]
 pub(crate) struct CsvOpts {
@@ -20,6 +20,25 @@ pub(crate) struct CsvOpts {
 
     #[arg(long, default_value_t = false)]
     pub no_header: bool,
+}
+
+impl CmdExecutor for CsvOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let output = if let Some(output) = self.output {
+            output
+        } else {
+            format!("output.{}", self.format)
+        };
+        process_csv(
+            &self.input,
+            output,
+            self.format,
+            self.delimiter,
+            !self.no_header,
+        )
+        .await?;
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
