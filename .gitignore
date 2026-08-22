@@ -45,8 +45,14 @@ profile.json
 *~
 *.log
 
-# 测试密钥，别进版本库
-/fixtures/*.sk
-/fixtures/*.pk
-/fixtures/blake3.txt
-/fixtures/chacha.txt
+# 密钥不进版本库。挡的是「日常跑 rcli text generate 顺手生成、又顺手 commit」这种事。
+*.sk
+*.pk
+
+# ……但 fixtures/ 下的是**测试向量**，不是秘密：它们不保护任何东西，存在的唯一目的
+# 是给测试套件提供确定性输入，而且有两个的内容被测试钉死了——
+#   fixtures/blake3.txt  被 src/process/text.rs 的 KNOWN_SIG 已知答案测试钉着
+#   fixtures/chacha.txt  已提交的 chacha-ciphertext.txt 就是用它加密的
+# 换一把密钥这两条测试就永久红了，所以必须跟着仓库走。
+!/fixtures/*.sk
+!/fixtures/*.pk
