@@ -15,7 +15,7 @@ resolver = "3"
 # --- 供所有成员继承的公共元数据 -------------------------------------------
 # 子 crate 里写 `version.workspace = true` 即可继承，发版时只改这一处。
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 # MSRV（最低支持版本）。它只是下限，不限制上限——用更新的 stable 或 nightly 编译都没问题。
 # 作用：低于它时 cargo 直接报错；resolver 选依赖版本时会避开要求更高 rustc 的版本；
