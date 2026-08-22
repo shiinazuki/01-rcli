@@ -116,7 +116,7 @@ pub struct Claims {
 pub async fn process_jwt_sign(key: &str, sub: &str, aud: &str, exp: Duration) -> Result<String> {
     install_crypto_provider();
 
-    let signing_hey = fs::read(key).await?;
+    let signing_hey = read_key32(key).await?;
     let now = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
     let claims = Claims {
         sub: sub.to_owned(),
@@ -145,7 +145,7 @@ pub async fn process_jwt_sign(key: &str, sub: &str, aud: &str, exp: Duration) ->
 pub async fn process_jwt_verify(key: &str, token: &str, aud: Option<&str>) -> Result<Claims> {
     install_crypto_provider();
 
-    let verifying_key = fs::read(key).await?;
+    let verifying_key = read_key32(key).await?;
     let mut validation = Validation::new(Algorithm::EdDSA);
     match aud {
         Some(aud) => validation.set_audience(&[aud]),
@@ -169,13 +169,19 @@ pub async fn process_jwt_verify(key: &str, token: &str, aud: Option<&str>) -> Re
 ///
 /// 公钥读不出来、长度不对、或者不是合法的曲线点时返回错误。
 pub async fn process_jwt_pubkey(key: &str) -> Result<String> {
-    let bytes = fs::read(key).await?;
-    let bytes: [u8; 32] = bytes
-        .as_slice()
-        .try_into()
-        .map_err(|_| anyhow!("public key must be exactly 32 bytes, got {}", bytes.len()))?;
+    let bytes: [u8; 32] = read_key32(key).await?;
     let pem = VerifyingKey::from_bytes(&bytes)?.to_public_key_pem(LineEnding::LF)?;
     Ok(pem)
+}
+
+async fn read_key32(path: &str) -> Result<[u8; 32]> {
+    let bytes = fs::read(path).await?;
+    bytes.as_slice().try_into().map_err(|_| {
+        anyhow!(
+            "{path}: ed25519 key must be exactly 32 bytes, got {}",
+            bytes.len()
+        )
+    })
 }
 
 #[cfg(test)]
